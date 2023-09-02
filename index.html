@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Form</title>
+    <style>
+        /* Global Styles */
+        body {
+            background: linear-gradient(to bottom, #8a2be2, #1c1a1e);
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container Styles */
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        /* Header Styles */
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Label and Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select, input[type="text"], input[type="email"], input[type="tel"], textarea, input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+
+        /* Card Details Styles */
+        .card-details {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-details div {
+            flex: 1;
+        }
+
+        /* Button Styles */
+        button {
+            background-color: #2bc6e2;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #5a1a8a;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin: 15% auto;
+            padding: 20px;
+            max-width: 400px;
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            margin-bottom: 10px;
+        }
+
+        .close {
+            color: #333;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tick {
+            color: green;
+            font-size: 48px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Form</h1>
+        <form id="order-form">
+            <label for="category">Select Category:</label>
+            <select id="category" name="category" required>
+                <option value="Blogs">Blogs</option>
+                <option value="Assignments">Assignments</option>
+                <option value="Articles">Articles</option>
+            </select>
+
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="contact">Contact Number:</label>
+            <input type="tel" id="contact" name="contact" required>
+
+            <label for="description">Assignment/Notes Description:</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+
+            <label for="file-upload">Upload File (Optional):</label>
+            <input type="file" id="file-upload" name="file-upload">
+
+            <label for="card-number">Credit/Debit Card Details:</label>
+            <input type="text" id="card-number" name="card-number" placeholder="Card Number" required>
+            
+            <div class="card-details">
+                <div>
+                    <label for="card-expiry">Expiry Date:</label>
+                    <input type="text" id="card-expiry" name="card-expiry" placeholder="MM/YY" required>
+                </div>
+                <div>
+                    <label for="card-cvc">CVC:</label>
+                    <input type="text" id="card-cvc" name="card-cvc" placeholder="CVC" required>
+                </div>
+            </div>
+            
+            <button id="confirmOrderButton" class="select-plan-btn">Confirm Order</button>
+        </form>
+    </div>
+    
+    <!-- Square payment form -->
+    <form id="payment-form">
+        <!-- Add your customer information fields here -->
+        <button type="button" id="square-pay-button">Pay Now</button>
+    </form>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Order Confirmation</h2>
+            <p><span class="tick">&#10003;</span> <strong>Category:</strong> <span id="confirmationCategory"></span></p>
+            <p><span class="tick">&#10003;</span> <strong>Amount:</strong> <span id="confirmationAmount"></span></p>
+            <p><span class="tick">&#10003;</span> <strong>Delivery Time:</strong> <span id="confirmationDeliveryTime"></span></p>
+            <p>Your order has been confirmed. You will receive an email confirmation shortly.</p>
+            <button id="closeButton" class="select-plan-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Include Square payment form script -->
+    <script>
+        var applicationId = 'sandbox-sq0idb-ncqBoPBjwVNkdbJzVToE3g';
+        var locationId = 'LTGHQDEJVNWW9'; // Replace with your actual Square location ID
+
+        // Initialize the payment form
+        var paymentForm = new SqPaymentForm({
+            applicationId: applicationId,
+            locationId: locationId,
+            autoBuild: false, // Set to false to manually build the form
+        });
+
+        // Build the payment form when the Square payment button is clicked
+        document.getElementById('square-pay-button').addEventListener('click', function () {
+            paymentForm.build();
+            paymentForm.requestCardNonce();
+        });
+
+        // Handle the nonce generation
+        paymentForm.build();
+
+        // Handle form submission to your server
+        document.getElementById('order-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Collect form data
+            const formData = new FormData(this);
+
+            // Send a POST request to the server with the form data
+            fetch('http://localhost:3000/submit-order', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Handle the server's response, e.g., show a confirmation message
+                    console.log(data);
+                })
+                .catch((error) => {
+                    // Handle any errors
+                    console.error('Error:', error);
+                });
+        });
+
+        // Get the confirmation modal element
+        var modal = document.getElementById('confirmationModal');
+
+        // Get the button that closes the modal
+        var closeButton = document.getElementById('closeModal');
+
+        // When the user clicks the "Confirm Order" button, show the modal
+        document.getElementById('confirmOrderButton').addEventListener('click', function () {
+            // You can add client-side validation here to ensure all fields are filled correctly before proceeding.
+
+            // Get the category, amount, and delivery time here
+            var category = document.getElementById('category').value;
+            var amount = '$100'; // Replace with the actual amount
+            var deliveryTime = '2 days'; // Replace with the actual delivery time
+
+            // Set the values in the modal
+            document.getElementById('confirmationCategory').textContent = category;
+            document.getElementById('confirmationAmount').textContent = amount;
+            document.getElementById('confirmationDeliveryTime').textContent = deliveryTime;
+
+            // Show the modal
+            modal.style.display = 'block';
+
+            // Send confirmation email (simulated, you need server-side code for this)
+            setTimeout(function () {
+                sendConfirmationEmail();
+            }, 2000); // Simulating a delay before sending the email
+        });
+
+        // When the user clicks the close button, hide the modal
+        closeButton.onclick = function () {
+            modal.style.display = 'none';
+        };
+
+        // When the user clicks anywhere outside the modal, close it
+        window.onclick = function (event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Simulated function to send a confirmation email (replace with actual server-side code)
+        function sendConfirmationEmail() {
+            // You can use JavaScript to send an HTTP request to your server for email sending
+            // Here, we'll just simulate it with an alert
+            alert('Confirmation email sent. Payment process initiated in your account.');
+        }
+    </script>
+</body>
+</html>
